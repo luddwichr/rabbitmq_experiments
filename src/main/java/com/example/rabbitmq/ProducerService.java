@@ -4,12 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 @Service
 public class ProducerService {
@@ -19,8 +16,6 @@ public class ProducerService {
     private static final String QUEUE_NAME = "nonExistentQueue";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final RabbitTemplate rabbitTemplate;
-    private final Executor executor = Executors.newCachedThreadPool();
-    boolean runInSeparateThread = false;
 
     public ProducerService(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
@@ -30,11 +25,7 @@ public class ProducerService {
     private void confirmCallback(CorrelationData correlationData, boolean ack, String cause) {
         logger.info("In confirm callback, ack={}, cause={}, correlationData={}", ack, cause, correlationData);
         if (!ack) {
-            if (runInSeparateThread) {
-                executor.execute(() -> sendMessage("resend Message", EXISTENT_EXCHANGE));
-            } else {
-                sendMessage("resend Message", EXISTENT_EXCHANGE);
-            }
+           sendMessage("resend Message", EXISTENT_EXCHANGE);
         } else {
             logger.info("sending was acknowledged");
         }

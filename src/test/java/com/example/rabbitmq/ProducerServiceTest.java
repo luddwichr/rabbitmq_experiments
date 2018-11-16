@@ -64,7 +64,6 @@ public class ProducerServiceTest {
             return null;
         }).when(rabbitTemplate).send(anyString(), anyString(), any(Message.class));
 
-//        service.runInSeparateThread = true;
         service.produceMessage();
         sentMessagesLatch.await();
 
